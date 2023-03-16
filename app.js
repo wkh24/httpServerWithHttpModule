@@ -39,28 +39,44 @@ const httpRequestListener = function (request, response) {
       response.end(JSON.stringify({ message: "pong" }));
     }
   } else if (method === "POST") {
-    // (3)
     if (url === "/users") {
-      let body = ""; // (4)
+      let body = "";
 
       request.on("data", (data) => {
         body += data;
-      }); // (5)
+      });
 
       // stream을 전부 받아온 이후에 실행
       request.on("end", () => {
-        // (6)
-        const user = JSON.parse(body); //(7)
+        const user = JSON.parse(body);
 
         users.push({
-          // (8)
           id: user.id,
           name: user.name,
           email: user.email,
           password: user.password,
         });
         response.writeHead(200, { "Content-Type": "application/json" });
-        response.end(JSON.stringify({ message: "ok!" })); // (9)
+        response.end(JSON.stringify({ message: "ok", data: users }));
+      });
+    }
+    if (url === "/posts") {
+      let body = "";
+
+      request.on("data", (data) => {
+        body += data;
+      });
+      request.on("end", () => {
+        const post = JSON.parse(body);
+
+        posts.push({
+          id: post.id,
+          title: post.title,
+          description: post.description,
+          userId: post.userId,
+        });
+        response.writeHead(200, { "Content-Type": "application/json" });
+        response.end(JSON.stringify({ message: "postCreated", data: posts }));
       });
     }
   }
