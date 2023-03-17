@@ -1,5 +1,4 @@
 const http = require("http");
-const { title } = require("process");
 const server = http.createServer();
 
 const users = [
@@ -32,47 +31,30 @@ const posts = [
   },
 ];
 
-const postlist = [
-  {
-    userID: 1,
-    userName: "Rebekah Johnson",
-    postingId: 1,
-    postingTitle: "간단한 HTTP API 개발 시작!",
-    postingContent: "Node.js에 내장되어 있는 http 모듈을 사용해서 HTTP server를 구현.",
-  },
-  {
-    userID: 2,
-    userName: "Fabian Predovic",
-    postingId: 2,
-    postingTitle: "HTTP의 특성",
-    postingContent: "Request/Response와 Stateless!!",
-  },
-  {
-    userID: 3,
-    userName: "new user 1",
-    postingId: 3,
-    postingImageUrl: "내용 1",
-    postingContent: "sampleContent3",
-  },
-  {
-    userID: 4,
-    userName: "new user 2",
-    postingId: 4,
-    postingImageUrl: "내용 2",
-    postingContent: "sampleContent4",
-  },
-];
-
 const httpRequestListener = function (request, response) {
   const { url, method } = request;
   if (method === "GET") {
     if (url === "/ping") {
       response.writeHead(200, { "Content-Type": "application/json" });
       response.end(JSON.stringify({ message: "pong" }));
-    }
-    if (url === "/postlist") {
+    } else if (url === "/postlist") {
+      const data = [];
+      for (let i = 0; i < posts.length; i++) {
+        for (let a = 0; a < users.length; a++) {
+          if (users[a].id === posts[i].userId) {
+            let postlist = {
+              userID: users[a].id,
+              userName: users[a].name,
+              postingId: posts[i].id,
+              postingTitle: posts[i].title,
+              postingContent: posts[i].description,
+            };
+            data.push(postlist);
+          }
+        }
+      }
       response.writeHead(200, { "Content-Type": "application/json" });
-      response.end(JSON.stringify({ data: postlist }));
+      response.end(JSON.stringify({ data: data }));
     }
   } else if (method === "POST") {
     if (url === "/users") {
