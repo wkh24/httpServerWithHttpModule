@@ -1,6 +1,5 @@
 const http = require("http");
 const server = http.createServer();
-
 const users = [
   {
     id: 1,
@@ -20,16 +19,35 @@ const posts = [
   {
     id: 1,
     title: "간단한 HTTP API 개발 시작!",
-    description: "Node.js에 내장되어 있는 http 모듈을 사용해서 HTTP server를 구현.",
+    content: "Node.js에 내장되어 있는 http 모듈을 사용해서 HTTP server를 구현.",
     userId: 1,
   },
   {
     id: 2,
     title: "HTTP의 특성",
-    description: "Request/Response와 Stateless!!",
+    content: "Request/Response와 Stateless!!",
     userId: 2,
   },
 ];
+
+const postEdit = function () {
+  let arr = [];
+  for (let i = 0; i < posts.length; i++) {
+    for (let a = 0; a < users.length; a++) {
+      if (users[a].id === posts[i].userId) {
+        let postlist = {
+          userID: users[a].id,
+          userName: users[a].name,
+          postingId: posts[i].id,
+          postingTitle: posts[i].title,
+          postingContent: posts[i].content,
+        };
+        arr.push(postlist);
+      }
+    }
+  }
+  return arr;
+};
 
 const httpRequestListener = function (request, response) {
   const { url, method } = request;
@@ -38,32 +56,15 @@ const httpRequestListener = function (request, response) {
       response.writeHead(200, { "Content-Type": "application/json" });
       response.end(JSON.stringify({ message: "pong" }));
     } else if (url === "/postlist") {
-      const data = [];
-      for (let i = 0; i < posts.length; i++) {
-        for (let a = 0; a < users.length; a++) {
-          if (users[a].id === posts[i].userId) {
-            let postlist = {
-              userID: users[a].id,
-              userName: users[a].name,
-              postingId: posts[i].id,
-              postingTitle: posts[i].title,
-              postingContent: posts[i].description,
-            };
-            data.push(postlist);
-          }
-        }
-      }
       response.writeHead(200, { "Content-Type": "application/json" });
-      response.end(JSON.stringify({ data: data }));
+      response.end(JSON.stringify({ data: postEdit() }));
     }
   } else if (method === "POST") {
     if (url === "/users") {
       let body = "";
-
       request.on("data", (data) => {
         body += data;
       });
-
       // stream을 전부 받아온 이후에 실행
       request.on("end", () => {
         const user = JSON.parse(body);
@@ -77,8 +78,7 @@ const httpRequestListener = function (request, response) {
         response.writeHead(200, { "Content-Type": "application/json" });
         response.end(JSON.stringify({ message: "ok", data: users }));
       });
-    }
-    if (url === "/posts") {
+    } else if (url === "/posts") {
       let body = "";
 
       request.on("data", (data) => {
@@ -90,11 +90,30 @@ const httpRequestListener = function (request, response) {
         posts.push({
           id: post.id,
           title: post.title,
-          description: post.description,
+          content: post.content,
           userId: post.userId,
         });
         response.writeHead(200, { "Content-Type": "application/json" });
         response.end(JSON.stringify({ message: "postCreated", data: posts }));
+      });
+    }
+  } else if (method === "PATCH") {
+    if (url === "/postUpdate") {
+      let body = "";
+
+      request.on("data", (data) => {
+        body += data;
+      });
+      request.on("end", () => {
+        const update = JSON.parse(body);
+        const edit = {};
+        for (let i in posts) {
+          if (posts[i].id === update.id) {
+            posts[i].content = update.content;
+          }
+        }
+        response.writeHead(200, { "Content-Type": "application/json" });
+        response.end(JSON.stringify({ data: postEdit() }));
       });
     }
   }
