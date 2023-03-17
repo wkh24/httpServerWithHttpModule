@@ -116,6 +116,27 @@ const httpRequestListener = function (request, response) {
         response.end(JSON.stringify({ data: postEdit() }));
       });
     }
+  } else if (method === "DELETE") {
+    if (url === "/postdelete") {
+      let body = "";
+      request.on("data", (data) => {
+        body += data;
+      });
+
+      request.on("end", () => {
+        const postDelete = JSON.parse(body);
+
+        for (let i = 0; i < posts.length; i++) {
+          if (posts[i].id === postDelete.id) {
+            posts.splice(i, 1);
+            break;
+          }
+        }
+
+        response.writeHead(200, { "Content-Type": "application/json" });
+        response.end(JSON.stringify({ message: "postingDeleted", posts: posts }));
+      });
+    }
   }
 };
 
